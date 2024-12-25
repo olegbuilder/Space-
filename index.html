@@ -1,4 +1,4 @@
-	<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -47,6 +47,41 @@
             font-size: 30px;
             font-weight: bold;
         }
+        .joystick {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .joystick-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+        }
+        .joystick-button.up {
+            position: absolute;
+            top: 10px;
+        }
+        .joystick-button.down {
+            position: absolute;
+            bottom: 10px;
+        }
+        .joystick-button.left {
+            position: absolute;
+            left: 10px;
+        }
+        .joystick-button.right {
+            position: absolute;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -63,6 +98,13 @@
                 <p id="vel">VEL: 73</p>
             </div>
             <div class="planet-count" id="planet-count">0/7</div>
+        </div>
+        <!-- Джойстик -->
+        <div class="joystick">
+            <div class="joystick-button up" id="joystick-up"></div>
+            <div class="joystick-button down" id="joystick-down"></div>
+            <div class="joystick-button left" id="joystick-left"></div>
+            <div class="joystick-button right" id="joystick-right"></div>
         </div>
     </div>
 
@@ -101,7 +143,7 @@
         // Обновление значений каждую секунду
         setInterval(updateValues, 1000);  // Каждую секунду обновляется информация
 
-        // Управление ракетой с помощью клавиш
+        // Управление ракетой с помощью джойстика
         const rocket = document.getElementById("rocket");
         const gameWorld = document.getElementById("game-world");
         let rocketX = 50;  // начальная позиция ракеты по оси X (в процентах)
@@ -151,26 +193,32 @@
             });
         }
 
-        // Двигаем ракету в зависимости от нажатых клавиш
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "ArrowUp") {
-                rocketY -= 5;  // Двигаем вверх
-            } else if (e.key === "ArrowDown") {
-                rocketY += 5;  // Двигаем вниз
-            } else if (e.key === "ArrowLeft") {
-                rocketX -= 5;  // Двигаем влево
-            } else if (e.key === "ArrowRight") {
-                rocketX += 5;  // Двигаем вправо
-            }
-
-            // Обновляем позицию ракеты
+        // Функции для управления джойстиком
+        document.getElementById("joystick-up").addEventListener("click", () => {
+            rocketY -= 5;
             rocket.style.top = `${rocketY}%`;
-            rocket.style.left = `${rocketX}%`;
-
-            // Перемещаем мир, чтобы ракета была в центре
             gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
+            checkCollision();
+        });
 
-            // Проверка на столкновение
+        document.getElementById("joystick-down").addEventListener("click", () => {
+            rocketY += 5;
+            rocket.style.top = `${rocketY}%`;
+            gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
+            checkCollision();
+        });
+
+        document.getElementById("joystick-left").addEventListener("click", () => {
+            rocketX -= 5;
+            rocket.style.left = `${rocketX}%`;
+            gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
+            checkCollision();
+        });
+
+        document.getElementById("joystick-right").addEventListener("click", () => {
+            rocketX += 5;
+            rocket.style.left = `${rocketX}%`;
+            gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
             checkCollision();
         });
     </script>
