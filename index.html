@@ -26,36 +26,36 @@
         }
         #rocket {
             position: absolute;
-            font-size: 50px;
-            left: 50%;  /* Центрируем ракету по X */
-            top: 50%;   /* Центрируем ракету по Y */
-            transform: translate(-50%, -50%); /* Центр ракеты по координатам */
+            font-size: 10vw; /* Размер ракеты зависит от ширины экрана */
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
         .planet {
             position: absolute;
-            font-size: 120px;
+            font-size: 15vw; /* Планеты будут больше на экранах большего размера */
         }
         .info-text {
             position: absolute;
-            font-size: 20px;
+            font-size: 5vw;
             font-weight: bold;
-            top: 10px;
-            left: 10px;
+            top: 5%;
+            left: 5%;
             text-align: left;
         }
         .planet-count {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 30px;
+            top: 5%;
+            right: 5%;
+            font-size: 6vw;
             font-weight: bold;
         }
         .joystick {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 150px;
-            height: 150px;
+            bottom: 5%;
+            left: 5%;
+            width: 20vw;
+            height: 20vw;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.3);
             display: flex;
@@ -63,27 +63,27 @@
             align-items: center;
         }
         .joystick-button {
-            width: 50px;
-            height: 50px;
+            width: 4vw;
+            height: 4vw;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
         }
         .joystick-button.up {
             position: absolute;
-            top: 10px;
+            top: 2vw;
         }
         .joystick-button.down {
             position: absolute;
-            bottom: 10px;
+            bottom: 2vw;
         }
         .joystick-button.left {
             position: absolute;
-            left: 10px;
+            left: 2vw;
         }
         .joystick-button.right {
             position: absolute;
-            right: 10px;
+            right: 2vw;
         }
     </style>
 </head>
