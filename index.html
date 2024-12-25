@@ -21,19 +21,19 @@
         }
         #game-world {
             position: absolute;
-            width: 200vw; /* Сделаем мир в 2 раза шире экрана */
-            height: 200vh; /* И в 2 раза выше */
+            width: 200vw; /* Мир больше экрана */
+            height: 200vh; /* Мир больше экрана */
         }
         #rocket {
             position: absolute;
             font-size: 50px;
             left: 50%;  /* Центрируем ракету по X */
             top: 50%;   /* Центрируем ракету по Y */
-            transform: translate(-50%, -50%); /* Чтобы центр ракеты был по центру */
+            transform: translate(-50%, -50%); /* Центр ракеты по координатам */
         }
         .planet {
             position: absolute;
-            font-size: 120px; /* Увеличиваем планеты */
+            font-size: 120px;
         }
         .info-text {
             position: absolute;
@@ -200,28 +200,24 @@
         document.getElementById("joystick-up").addEventListener("click", () => {
             rocketY -= 5;
             rocket.style.top = `${rocketY}%`;
-            gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
             checkCollision();
         });
 
         document.getElementById("joystick-down").addEventListener("click", () => {
             rocketY += 5;
             rocket.style.top = `${rocketY}%`;
-            gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
             checkCollision();
         });
 
         document.getElementById("joystick-left").addEventListener("click", () => {
             rocketX -= 5;
             rocket.style.left = `${rocketX}%`;
-            gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
             checkCollision();
         });
 
         document.getElementById("joystick-right").addEventListener("click", () => {
             rocketX += 5;
             rocket.style.left = `${rocketX}%`;
-            gameWorld.style.transform = `translate(-${rocketX}%, -${rocketY}%)`;
             checkCollision();
         });
 
@@ -229,6 +225,16 @@
         setTimeout(() => {
             document.getElementById("game-title").style.display = 'none';
         }, 5000);
+
+        // Перемещение мира с ракетой и планетами
+        let offsetX = 0;
+        let offsetY = 0;
+
+        function updateWorldPosition() {
+            gameWorld.style.transform = `translate(-${rocketX + offsetX}%, -${rocketY + offsetY}%)`;
+        }
+
+        setInterval(updateWorldPosition, 20); // Обновляем позицию мира и камеры
     </script>
 </body>
 </html>
