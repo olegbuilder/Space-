@@ -15,9 +15,9 @@
         }
         #game-container {
             position: relative;
-            width: 100vw;  /* Экран на 100% */
-            height: 100vh; /* Экран на 100% */
-            overflow: hidden; /* Чтобы не выходить за пределы экрана */
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
         #game-world {
             position: absolute;
@@ -27,6 +27,9 @@
         #rocket {
             position: absolute;
             font-size: 50px;
+            left: 50%;  /* Центрируем ракету по X */
+            top: 50%;   /* Центрируем ракету по Y */
+            transform: translate(-50%, -50%); /* Чтобы центр ракеты был по центру */
         }
         .planet {
             position: absolute;
@@ -222,7 +225,7 @@
             checkCollision();
         });
 
-        // Скроем название игры через 5 секунд
+        // Скроем только название игры через 5 секунд
         setTimeout(() => {
             document.getElementById("game-title").style.display = 'none';
         }, 5000);
