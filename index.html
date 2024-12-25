@@ -15,13 +15,13 @@
         }
         #game-container {
             position: relative;
-            width: 100vw;
+            width: 100%;
             height: 100vh;
             overflow: hidden;
         }
         #game-world {
             position: absolute;
-            width: 200vw; /* Мир больше экрана */
+            width: 200%; /* Мир больше экрана */
             height: 200vh; /* Мир больше экрана */
         }
         #rocket {
@@ -29,7 +29,7 @@
             font-size: 10vw; /* Размер ракеты зависит от ширины экрана */
             left: 50%;
             top: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%); /* Центрируем ракету */
         }
         .planet {
             position: absolute;
@@ -37,7 +37,7 @@
         }
         .info-text {
             position: absolute;
-            font-size: 5vw;
+            font-size: 3vw;
             font-weight: bold;
             top: 5%;
             left: 5%;
@@ -54,8 +54,8 @@
             position: absolute;
             bottom: 5%;
             left: 5%;
-            width: 20vw;
-            height: 20vw;
+            width: 15vw;
+            height: 15vw;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.3);
             display: flex;
