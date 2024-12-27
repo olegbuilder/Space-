@@ -1,240 +1,133 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Игра с ракетой и планетами</title>
+    <title>Змейка</title>
     <style>
         body {
-            text-align: center;
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #000;
-            color: white;
+            font-family: Arial, sans-serif;
         }
-        #game-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-        }
-        #game-world {
-            position: absolute;
-            width: 200%;
-            height: 200vh;
-        }
-        #rocket {
-            position: absolute;
-            font-size: 10vw;
-            transform: translate(-50%, -50%);
-            left: 50%;
-            top: 50%;
-        }
-        .planet {
-            position: absolute;
-            font-size: 15vw;
-        }
-        .info-text {
-            position: absolute;
-            font-size: 3vw;
-            font-weight: bold;
-            top: 5%;
-            left: 5%;
-            text-align: left;
-        }
-        .planet-count {
-            position: absolute;
-            top: 5%;
-            right: 5%;
-            font-size: 6vw;
-            font-weight: bold;
-        }
-        .joystick {
-            position: absolute;
-            bottom: 5%;
-            left: 5%;
-            width: 15vw;
-            height: 15vw;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.3);
+
+        .game-container {
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            flex-direction: column;
         }
-        .joystick-button {
-            width: 4vw;
-            height: 4vw;
+
+        canvas {
+            border: 1px solid #fff;
+            background-color: #222;
+        }
+
+        .controls {
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.7);
+            margin: 5px;
+            font-size: 24px;
             cursor: pointer;
         }
-        .joystick-button.up {
-            position: absolute;
-            top: 2vw;
-        }
-        .joystick-button.down {
-            position: absolute;
-            bottom: 2vw;
-        }
-        .joystick-button.left {
-            position: absolute;
-            left: 2vw;
-        }
-        .joystick-button.right {
-            position: absolute;
-            right: 2vw;
+
+        .control-btn:active {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <h1 id="game-title">Игра с ракетой и планетами</h1>
-    <div id="game-container">
-        <div id="game-world">
-            <div id="rocket">🚀</div>
-            <div class="info-text" id="info">
-                <p id="star">STAR: Nougat/Epsilon 3717 (UDC-41125) CLASS: K</p>
-                <p id="radius">RADIUS: 1495</p>
-                <p id="mass">MASS: 5,25e+09</p>
-                <p id="bodies">BODIES: 017</p>
-                <p id="pos">POS: +30750, +76895</p>
-                <p id="vel">VEL: 73</p>
-            </div>
-            <div class="planet-count" id="planet-count">0/7</div>
-        </div>
-        <!-- Джойстик -->
-        <div class="joystick">
-            <div class="joystick-button up" id="joystick-up"></div>
-            <div class="joystick-button down" id="joystick-down"></div>
-            <div class="joystick-button left" id="joystick-left"></div>
-            <div class="joystick-button right" id="joystick-right"></div>
-        </div>
+
+<div class="game-container">
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="controls">
+        <button class="control-btn" id="left">←</button>
+        <button class="control-btn" id="up">↑</button>
+        <button class="control-btn" id="right">→</button>
+        <button class="control-btn" id="down">↓</button>
     </div>
+</div>
 
-    <script>
-        // Функция для генерации случайных значений
-        function getRandomValue(min, max) {
-            return (Math.random() * (max - min) + min).toFixed(2);  // Возвращаем значение с двумя знаками после запятой
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const scale = 20; // Размер одной клетки
+    const rows = canvas.height / scale; // Количество строк
+    const columns = canvas.width / scale; // Количество столбцов
+
+    let snake = [{ x: 5, y: 5 }];
+    let direction = 'RIGHT'; // Начальная направленность змейки
+    let apple = spawnApple();
+    let score = 0;
+
+    function spawnApple() {
+        let x = Math.floor(Math.random() * columns);
+        let y = Math.floor(Math.random() * rows);
+        return { x, y };
+    }
+
+    function update() {
+        let head = { ...snake[0] };
+
+        if (direction === 'UP') head.y -= 1;
+        if (direction === 'DOWN') head.y += 1;
+        if (direction === 'LEFT') head.x -= 1;
+        if (direction === 'RIGHT') head.x += 1;
+
+        snake.unshift(head);
+
+        if (head.x === apple.x && head.y === apple.y) {
+            score++;
+            apple = spawnApple();
+        } else {
+            snake.pop();
         }
 
-        // Функция для создания случайных планет
-        function createRandomPlanets(numberOfPlanets) {
-            const planets = [];
-            for (let i = 0; i < numberOfPlanets; i++) {
-                const x = getRandomValue(5, 95); // случайное значение для X от 5% до 95%
-                const y = getRandomValue(5, 95); // случайное значение для Y от 5% до 95%
-                const radius = Math.floor(Math.random() * 15) + 10; // случайный радиус от 10 до 25
-
-                planets.push({ x, y, radius, isHit: false });
-            }
-            return planets;
+        if (head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows || checkCollision(head)) {
+            resetGame();
         }
+    }
 
-        // Функция для обновления значений
-        function updateValues() {
-            const vel = getRandomValue(50, 100);  // Скорость от 50 до 100
-            const mass = getRandomValue(5e+09, 1e+10);  // Масса от 5e+09 до 1e+10
-            const posX = getRandomValue(30000, 40000);  // Позиция X от 30000 до 40000
-            const posY = getRandomValue(70000, 80000);  // Позиция Y от 70000 до 80000
+    function checkCollision(head) {
+        return snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
+    }
 
-            // Обновляем элементы на экране
-            document.getElementById("vel").innerHTML = `VEL: ${vel}`;
-            document.getElementById("mass").innerHTML = `MASS: ${mass}`;
-            document.getElementById("pos").innerHTML = `POS: +${posX}, +${posY}`;
-        }
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'green';
+        snake.forEach(segment => ctx.fillRect(segment.x * scale, segment.y * scale, scale, scale));
 
-        // Обновление значений каждую секунду
-        setInterval(updateValues, 1000);  // Каждую секунду обновляется информация
+        ctx.fillStyle = 'red';
+        ctx.fillRect(apple.x * scale, apple.y * scale, scale, scale);
 
-        // Управление ракетой с помощью джойстика
-        const rocket = document.getElementById("rocket");
-        const gameWorld = document.getElementById("game-world");
-        let rocketX = 50;  // начальная позиция ракеты по оси X (в процентах)
-        let rocketY = 50;  // начальная позиция ракеты по оси Y (в процентах)
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.fillText('Score: ' + score, 10, 20);
+    }
 
-        // Счётчик планет
-        let planetCounter = 0;
-        const planetCountDisplay = document.getElementById("planet-count");
+    function resetGame() {
+        snake = [{ x: 5, y: 5 }];
+        direction = 'RIGHT';
+        score = 0;
+        apple = spawnApple();
+    }
 
-        // Генерация случайных планет
-        const planets = createRandomPlanets(7); // создаём 7 планет
-        const planetSymbols = ["🌍", "🎃", "🌐", "🧿", "🔮", "🍊", "🌚"]; // Символы для планет
+    function changeDirection(event) {
+        if (event.keyCode === 37 && direction !== 'RIGHT') direction = 'LEFT';
+        if (event.keyCode === 38 && direction !== 'DOWN') direction = 'UP';
+        if (event.keyCode === 39 && direction !== 'LEFT') direction = 'RIGHT';
+        if (event.keyCode === 40 && direction !== 'UP') direction = 'DOWN';
+    }
 
-        // Отображаем планеты на экране
-        planets.forEach((planet, index) => {
-            const planetElement = document.createElement("div");
-            planetElement.classList.add("planet");
-            planetElement.style.left = `${planet.x}%`;
-            planetElement.style.top = `${planet.y}%`;
-            planetElement.innerHTML = planetSymbols[index];  // Используем правильный символ планеты
-            gameWorld.appendChild(planetElement);
-        });
-
-        // Функция для проверки столкновения ракеты с планетой
-        function checkCollision() {
-            planets.forEach((planet, index) => {
-                // Получаем координаты планеты и ракеты
-                const planetElement = document.querySelector(`.planet:nth-child(${index + 1})`);
-                const planetX = parseFloat(planetElement.style.left);
-                const planetY = parseFloat(planetElement.style.top);
-
-                // Расстояние между ракетой и планетой
-                const distX = rocketX - planetX;
-                const distY = rocketY - planetY;
-                const distance = Math.sqrt(distX * distX + distY * distY);
-
-                // Если ракета в радиусе планеты, увеличиваем счётчик
-                if (distance < planet.radius) {
-                    if (!planet.isHit) {
-                        planetCounter++;
-                        planet.isHit = true;
-                        planetCountDisplay.textContent = `${planetCounter}/7`; // Обновляем счётчик
-                    }
-                } else {
-                    planet.isHit = false; // Сбросим, если ракета ушла от планеты
-                }
-            });
-        }
-
-        // Функции для управления джойстиком
-        document.getElementById("joystick-up").addEventListener("click", () => {
-            rocketY -= 5;
-            rocket.style.top = `${rocketY}%`;
-            checkCollision();
-        });
-
-        document.getElementById("joystick-down").addEventListener("click", () => {
-            rocketY += 5;
-            rocket.style.top = `${rocketY}%`;
-            checkCollision();
-        });
-
-        document.getElementById("joystick-left").addEventListener("click", () => {
-            rocketX -= 5;
-            rocket.style.left = `${rocketX}%`;
-            checkCollision();
-        });
-
-        document.getElementById("joystick-right").addEventListener("click", () => {
-            rocketX += 5;
-            rocket.style.left = `${rocketX}%`;
-            checkCollision();
-        });
-
-        // Скроем только название игры через 5 секунд
-        setTimeout(() => {
-            document.getElementById("game-title").style.display = 'none';
-        }, 5000);
-
-        // Перемещение мира с ракетой и планетами
-        let offsetX = 0;
-        let offsetY = 0;
-
-        function updateWorldPosition() {
-            gameWorld.style.transform = `translate(-${rocketX + offsetX}%, -${rocketY + offsetY}%)`;
-        }
-
-        setInterval(updateWorldPosition, 20); // Обновляем позицию мира и камеры
-    </script>
-</body>
-</html>
+    function game
