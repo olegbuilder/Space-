@@ -5,46 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plague Inc. Clone</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        #map-container {
+            display: grid;
+            grid-template-columns: repeat(20, 20px);
+            grid-gap: 2px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .cell {
+            width: 20px;
+            height: 20px;
+            background-color: green;
+            cursor: pointer;
+        }
+
+        .infected {
+            background-color: red;
+        }
+
         #progress-bar-container, #cure-progress-container {
-            width: 100%;
+            width: 80%;
             height: 30px;
             background-color: #ddd;
-            margin-top: 20px;
+            margin: 20px auto;
         }
 
         #progress-bar, #cure-progress-bar {
             height: 100%;
-            width: 0%; /* Начальное значение */
-            background-color: green;
+            width: 0%;
             text-align: center;
             line-height: 30px;
             color: white;
             font-weight: bold;
         }
 
+        #progress-bar {
+            background-color: green;
+        }
+
         #cure-progress-bar {
             background-color: blue;
-        }
-
-        table {
-            margin-top: 30px;
-            border-collapse: collapse;
-            text-align: center;
-            font-size: 24px;
-        }
-
-        td {
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-        }
-
-        .uninfected {
-            background-color: #00FF00; /* Зеленый — не заражённый */
-        }
-
-        .infected {
-            background-color: #FF0000; /* Красный — заражённый */
         }
 
         #news {
@@ -70,23 +76,8 @@
     </form>
 
     <h3>Карта мира</h3>
-    <p>Нажмите на клетку, чтобы выбрать начальную точку вируса:</p>
-    <table id="world-map">
-        <tr>
-            <td id="region-1" class="uninfected" onclick="startInfection(1)">🟩</td>
-            <td id="region-2" class="uninfected" onclick="startInfection(2)">🟩</td>
-            <td id="region-3" class="uninfected" onclick="startInfection(3)">🟩</td>
-            <td id="region-4" class="uninfected" onclick="startInfection(4)">🟩</td>
-            <td id="region-5" class="uninfected" onclick="startInfection(5)">🟩</td>
-        </tr>
-        <tr>
-            <td id="region-6" class="uninfected" onclick="startInfection(6)">🟩</td>
-            <td id="region-7" class="uninfected" onclick="startInfection(7)">🟩</td>
-            <td id="region-8" class="uninfected" onclick="startInfection(8)">🟩</td>
-            <td id="region-9" class="uninfected" onclick="startInfection(9)">🟩</td>
-            <td id="region-10" class="uninfected" onclick="startInfection(10)">🟩</td>
-        </tr>
-    </table>
+    <p>Нажмите на клетку, чтобы начать заражение:</p>
+    <div id="map-container"></div>
 
     <div id="progress-bar-container">
         <div id="progress-bar">Заражение: 0%</div>
@@ -100,66 +91,111 @@
     <div id="news"></div>
 
     <script>
+        const mapContainer = document.getElementById("map-container");
+        const rows = 15;
+        const cols = 20;
+        const totalCells = rows * cols;
+        const cells = [];
         let infectionStarted = false;
         let infectionProgress = 0;
         let cureProgress = 0;
-        let infectedRegions = 0;
-        let totalRegions = 10;
-        let newsInterval;
-        let cureInterval;
 
-        function startInfection(region) {
+        // Создаём карту из зелёных клеток
+        for (let i = 0; i < totalCells; i++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.dataset.index = i;
+            cells.push(cell);
+            cell.onclick = () => startInfection(cell);
+            mapContainer.appendChild(cell);
+        }
+
+        function startInfection(cell) {
             if (!infectionStarted) {
-                document.getElementById("region-" + region).classList.remove("uninfected");
-                document.getElementById("region-" + region).classList.add("infected");
-                document.getElementById("region-" + region).textContent = "🟥";
-
                 infectionStarted = true;
-                addNews("Вирус начал распространяться в регионе #" + region);
                 startNewsUpdates();
-                updateProgress();
-            } else {
-                alert("Игра уже началась! Распространение идет.");
+                spreadInfection();
+                addNews("Вирус начал распространяться!");
+                startCureProgress();
             }
+
+            if (!cell.classList.contains("infected")) {
+                infectCell(cell);
+            }
+        }
+
+        function infectCell(cell) {
+            cell.classList.remove("cell");
+            cell.classList.add("infected");
+            updateProgress();
         }
 
         function updateProgress() {
             const progressBar = document.getElementById("progress-bar");
-            infectionProgress += 5;
-            infectedRegions += 1;
-            if (infectionProgress > 100) infectionProgress = 100;
-
+            const infectedCells = cells.filter(cell => cell.classList.contains("infected")).length;
+            infectionProgress = Math.floor((infectedCells / totalCells) * 100);
             progressBar.style.width = infectionProgress + "%";
             progressBar.textContent = "Заражение: " + infectionProgress + "%";
 
-            if (infectedRegions === totalRegions) {
-                addNews("Весь мир заражён! Начата разработка лекарства.");
-                startCureProgress();
+            if (infectedCells === totalCells) {
+                addNews("Весь мир заражён!");
+                clearInterval(spreadInterval);
             }
         }
 
-        function startCureProgress() {
-            cureInterval = setInterval(() => {
-                cureProgress += 5;
-                const cureBar = document.getElementById("cure-progress-bar");
-                cureBar.style.width = cureProgress + "%";
-                cureBar.textContent = "Разработка лекарства: " + cureProgress + "%";
+        function spreadInfection() {
+            spreadInterval = setInterval(() => {
+                const infectedCells = cells.filter(cell => cell.classList.contains("infected"));
+                if (infectedCells.length === 0) return;
 
-                if (cureProgress >= 100) {
-                    clearInterval(cureInterval);
-                    clearInterval(newsInterval);
-                    addNews("Лекарство разработано. Вы проиграли!");
-                    alert("Игра окончена: лекарство разработано.");
+                const randomCell = infectedCells[Math.floor(Math.random() * infectedCells.length)];
+                const index = parseInt(randomCell.dataset.index);
+
+                const neighbors = getNeighbors(index);
+                const healthyNeighbors = neighbors.filter(cell => cell && !cell.classList.contains("infected"));
+
+                if (healthyNeighbors.length > 0) {
+                    const target = healthyNeighbors[Math.floor(Math.random() * healthyNeighbors.length)];
+                    infectCell(target);
                 }
-            }, 3000); // Лекарство прогрессирует каждые 3 секунды
+            }, 60000); // 1 минута
+        }
+
+        function getNeighbors(index) {
+            const neighbors = [];
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+
+            if (row > 0) neighbors.push(cells[index - cols]); // Верхняя
+            if (row < rows - 1) neighbors.push(cells[index + cols]); // Нижняя
+            if (col > 0) neighbors.push(cells[index - 1]); // Левая
+            if (col < cols - 1) neighbors.push(cells[index + 1]); // Правая
+
+            return neighbors;
+        }
+
+        function startCureProgress() {
+            const cureInterval = setInterval(() => {
+                if (cureProgress < 100) {
+                    cureProgress += 1;
+                    const cureBar = document.getElementById("cure-progress-bar");
+                    cureBar.style.width = cureProgress + "%";
+                    cureBar.textContent = "Разработка лекарства: " + cureProgress + "%";
+
+                    if (cureProgress === 100) {
+                        clearInterval(cureInterval);
+                        addNews("Лекарство разработано. Вы проиграли!");
+                        alert("Игра окончена: лекарство разработано.");
+                    }
+                }
+            }, 60000); // 1 минута на 1%
         }
 
         function startNewsUpdates() {
-            newsInterval = setInterval(() => {
+            setInterval(() => {
                 const randomNews = getRandomNews();
                 addNews(randomNews);
-                if (infectedRegions < totalRegions) updateProgress();
-            }, 3000);
+            }, 10000); // Новости каждые 10 секунд
         }
 
         function addNews(message) {
@@ -167,21 +203,21 @@
             const newsItem = document.createElement("div");
             newsItem.classList.add("news-item");
             newsItem.textContent = message;
-            newsContainer.prepend(newsItem); // Новость добавляется сверху
+            newsContainer.prepend(newsItem);
         }
 
         function getRandomNews() {
             const news = [
                 "Учёные обсуждают глобальное потепление.",
                 "Apple выпускает новый iPhone 20.",
-                "На рынке подешевели криптовалюты.",
-                "Учёные разрабатывают вакцину против вируса.",
-                "Сообщения о перебоях с электричеством.",
-                "Популярный блогер рассказал о жизни с вирусом.",
+                "Учёные работают над вакциной.",
                 "Карантин введён в нескольких странах.",
-                "Новости: увеличивается уровень океанов.",
-                "Международная помощь направлена в заражённые регионы.",
-                "Учёные говорят, что вирус мутирует быстрее ожидаемого."
+                "Международная помощь отправлена в заражённые регионы.",
+                "Популярный блогер рассказал о жизни с вирусом.",
+                "Океаны продолжают нагреваться.",
+                "Криптовалюты снова в тренде.",
+                "Уровень воды в мировом океане поднялся на 1 см.",
+                "Сообщения о массовых отключениях электроэнергии."
             ];
 
             return news[Math.floor(Math.random() * news.length)];
