@@ -3,131 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Змейка</title>
+    <title>Plague Inc. Clone</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            font-family: Arial, sans-serif;
+        #progress-bar-container, #cure-progress-container {
+            width: 100%;
+            height: 30px;
+            background-color: #ddd;
+            margin-top: 20px;
         }
 
-        .game-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-        }
-
-        canvas {
-            border: 1px solid #fff;
-            background-color: #222;
-        }
-
-        .controls {
-            margin-top: 10px;
-        }
-
-        .control-btn {
-            width: 50px;
-            height: 50px;
-            background-color: #4CAF50;
+        #progress-bar, #cure-progress-bar {
+            height: 100%;
+            width: 0%; /* Начальное значение */
+            background-color: green;
+            text-align: center;
+            line-height: 30px;
             color: white;
-            border: none;
-            border-radius: 50%;
-            margin: 5px;
+            font-weight: bold;
+        }
+
+        #cure-progress-bar {
+            background-color: blue;
+        }
+
+        table {
+            margin-top: 30px;
+            border-collapse: collapse;
+            text-align: center;
             font-size: 24px;
+        }
+
+        td {
+            width: 40px;
+            height: 40px;
             cursor: pointer;
         }
 
-        .control-btn:active {
-            background-color: #45a049;
+        .uninfected {
+            background-color: #00FF00; /* Зеленый — не заражённый */
+        }
+
+        .infected {
+            background-color: #FF0000; /* Красный — заражённый */
+        }
+
+        #news {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: scroll;
+            background: #f9f9f9;
+        }
+
+        .news-item {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
+    <h1>Plague Inc. Clone</h1>
 
-<div class="game-container">
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <div class="controls">
-        <button class="control-btn" id="left">←</button>
-        <button class="control-btn" id="up">↑</button>
-        <button class="control-btn" id="right">→</button>
-        <button class="control-btn" id="down">↓</button>
+    <form>
+        <label for="virus-name">Введите название вируса:</label>
+        <input type="text" id="virus-name" placeholder="Название вируса">
+    </form>
+
+    <h3>Карта мира</h3>
+    <p>Нажмите на клетку, чтобы выбрать начальную точку вируса:</p>
+    <table id="world-map">
+        <tr>
+            <td id="region-1" class="uninfected" onclick="startInfection(1)">🟩</td>
+            <td id="region-2" class="uninfected" onclick="startInfection(2)">🟩</td>
+            <td id="region-3" class="uninfected" onclick="startInfection(3)">🟩</td>
+            <td id="region-4" class="uninfected" onclick="startInfection(4)">🟩</td>
+            <td id="region-5" class="uninfected" onclick="startInfection(5)">🟩</td>
+        </tr>
+        <tr>
+            <td id="region-6" class="uninfected" onclick="startInfection(6)">🟩</td>
+            <td id="region-7" class="uninfected" onclick="startInfection(7)">🟩</td>
+            <td id="region-8" class="uninfected" onclick="startInfection(8)">🟩</td>
+            <td id="region-9" class="uninfected" onclick="startInfection(9)">🟩</td>
+            <td id="region-10" class="uninfected" onclick="startInfection(10)">🟩</td>
+        </tr>
+    </table>
+
+    <div id="progress-bar-container">
+        <div id="progress-bar">Заражение: 0%</div>
     </div>
-</div>
 
-<script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    <div id="cure-progress-container">
+        <div id="cure-progress-bar">Разработка лекарства: 0%</div>
+    </div>
 
-    const scale = 20; // Размер одной клетки
-    const rows = canvas.height / scale; // Количество строк
-    const columns = canvas.width / scale; // Количество столбцов
+    <h3>Новости</h3>
+    <div id="news"></div>
 
-    let snake = [{ x: 5, y: 5 }];
-    let direction = 'RIGHT'; // Начальная направленность змейки
-    let apple = spawnApple();
-    let score = 0;
+    <script>
+        let infectionStarted = false;
+        let infectionProgress = 0;
+        let cureProgress = 0;
+        let infectedRegions = 0;
+        let totalRegions = 10;
+        let newsInterval;
+        let cureInterval;
 
-    function spawnApple() {
-        let x = Math.floor(Math.random() * columns);
-        let y = Math.floor(Math.random() * rows);
-        return { x, y };
-    }
+        function startInfection(region) {
+            if (!infectionStarted) {
+                document.getElementById("region-" + region).classList.remove("uninfected");
+                document.getElementById("region-" + region).classList.add("infected");
+                document.getElementById("region-" + region).textContent = "🟥";
 
-    function update() {
-        let head = { ...snake[0] };
-
-        if (direction === 'UP') head.y -= 1;
-        if (direction === 'DOWN') head.y += 1;
-        if (direction === 'LEFT') head.x -= 1;
-        if (direction === 'RIGHT') head.x += 1;
-
-        snake.unshift(head);
-
-        if (head.x === apple.x && head.y === apple.y) {
-            score++;
-            apple = spawnApple();
-        } else {
-            snake.pop();
+                infectionStarted = true;
+                addNews("Вирус начал распространяться в регионе #" + region);
+                startNewsUpdates();
+                updateProgress();
+            } else {
+                alert("Игра уже началась! Распространение идет.");
+            }
         }
 
-        if (head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows || checkCollision(head)) {
-            resetGame();
+        function updateProgress() {
+            const progressBar = document.getElementById("progress-bar");
+            infectionProgress += 5;
+            infectedRegions += 1;
+            if (infectionProgress > 100) infectionProgress = 100;
+
+            progressBar.style.width = infectionProgress + "%";
+            progressBar.textContent = "Заражение: " + infectionProgress + "%";
+
+            if (infectedRegions === totalRegions) {
+                addNews("Весь мир заражён! Начата разработка лекарства.");
+                startCureProgress();
+            }
         }
-    }
 
-    function checkCollision(head) {
-        return snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
-    }
+        function startCureProgress() {
+            cureInterval = setInterval(() => {
+                cureProgress += 5;
+                const cureBar = document.getElementById("cure-progress-bar");
+                cureBar.style.width = cureProgress + "%";
+                cureBar.textContent = "Разработка лекарства: " + cureProgress + "%";
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'green';
-        snake.forEach(segment => ctx.fillRect(segment.x * scale, segment.y * scale, scale, scale));
+                if (cureProgress >= 100) {
+                    clearInterval(cureInterval);
+                    clearInterval(newsInterval);
+                    addNews("Лекарство разработано. Вы проиграли!");
+                    alert("Игра окончена: лекарство разработано.");
+                }
+            }, 3000); // Лекарство прогрессирует каждые 3 секунды
+        }
 
-        ctx.fillStyle = 'red';
-        ctx.fillRect(apple.x * scale, apple.y * scale, scale, scale);
+        function startNewsUpdates() {
+            newsInterval = setInterval(() => {
+                const randomNews = getRandomNews();
+                addNews(randomNews);
+                if (infectedRegions < totalRegions) updateProgress();
+            }, 3000);
+        }
 
-        ctx.fillStyle = 'white';
-        ctx.font = '16px Arial';
-        ctx.fillText('Score: ' + score, 10, 20);
-    }
+        function addNews(message) {
+            const newsContainer = document.getElementById("news");
+            const newsItem = document.createElement("div");
+            newsItem.classList.add("news-item");
+            newsItem.textContent = message;
+            newsContainer.prepend(newsItem); // Новость добавляется сверху
+        }
 
-    function resetGame() {
-        snake = [{ x: 5, y: 5 }];
-        direction = 'RIGHT';
-        score = 0;
-        apple = spawnApple();
-    }
+        function getRandomNews() {
+            const news = [
+                "Учёные обсуждают глобальное потепление.",
+                "Apple выпускает новый iPhone 20.",
+                "На рынке подешевели криптовалюты.",
+                "Учёные разрабатывают вакцину против вируса.",
+                "Сообщения о перебоях с электричеством.",
+                "Популярный блогер рассказал о жизни с вирусом.",
+                "Карантин введён в нескольких странах.",
+                "Новости: увеличивается уровень океанов.",
+                "Международная помощь направлена в заражённые регионы.",
+                "Учёные говорят, что вирус мутирует быстрее ожидаемого."
+            ];
 
-    function changeDirection(event) {
-        if (event.keyCode === 37 && direction !== 'RIGHT') direction = 'LEFT';
-        if (event.keyCode === 38 && direction !== 'DOWN') direction = 'UP';
-        if (event.keyCode === 39 && direction !== 'LEFT') direction = 'RIGHT';
-        if (event.keyCode === 40 && direction !== 'UP') direction = 'DOWN';
-    }
-
-    function game
+            return news[Math.floor(Math.random() * news.length)];
+        }
+    </script>
+</body>
+    </html>
